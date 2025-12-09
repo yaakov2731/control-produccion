@@ -1,6 +1,6 @@
 const CONFIG = {
     // IMPORTANT: This ID needs to be updated with the actual Script ID after deployment
-    SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbx_placeholder_ID_here/exec',
+    SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwq06Zk1pfyHi2rxbmhipUyrTc03By6xoodJ-39UmERdL7kcE3bWwhBBwxC8ihDETaK/exec',
     // Spreadsheets URLs for data reading
     SHEET_URL: 'https://docs.google.com/spreadsheets/d/placeholder_SHEET_ID_here/edit',
     SHEET_CSV_URL: 'https://docs.google.com/spreadsheets/d/placeholder_SHEET_ID_here/gviz/tq?tqx=out:csv&sheet=Datos_Crudos',
