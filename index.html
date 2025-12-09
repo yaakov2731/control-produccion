@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Producción - Grupo Gastronómico</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+</head>
+<body>
+
+    <header class="header">
+        <div class="logo-container animate-float">
+            <img src="assets/logo.svg" alt="Logo" class="logo-svg">
+            <h1 class="header-title">Control Producción</h1>
+        </div>
+        <a href="historial.html" class="btn-3d-accent">📋 Historial</a>
+    </header>
+
+    <main class="container">
+        <!-- Dashboard rápido de métricas calculadas -->
+        <div class="card-grid stagger-animate">
+            <div class="metric-card" id="card-mermaKg">
+                <div class="metric-value" id="mermaKg">-</div>
+                <div class="metric-label">Merma (Kg)</div>
+            </div>
+            <div class="metric-card" id="card-mermaPct">
+                <div class="metric-value" id="mermaPct">-</div>
+                <div class="metric-label">Merma (%)</div>
+            </div>
+            <div class="metric-card" id="card-rendimientoPct">
+                <div class="metric-value" id="rendimientoPct">-</div>
+                <div class="metric-label">Rendimiento</div>
+            </div>
+            <div class="metric-card" id="card-pesoUnidad">
+                <div class="metric-value" id="pesoUnidad">-</div>
+                <div class="metric-label">Peso/Unidad</div>
+            </div>
+        </div>
+
+        <!-- Formulario Principal -->
+        <form id="produccionForm" class="card-3d stagger-animate animate-fadeInUp">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="local" class="form-label">Local</label>
+                    <select id="local" name="local" class="input-animated" required>
+                        <option value="">Seleccione Local...</option>
+                        <!-- Options injected by JS -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="responsable" class="form-label">Responsable</label>
+                    <input type="text" id="responsable" name="responsable" class="input-animated" required placeholder="Nombre del responsable">
+                </div>
+
+                <div class="form-group">
+                    <label for="categoria" class="form-label">Categoría</label>
+                    <select id="categoria" name="categoria" class="input-animated" required>
+                        <option value="">Seleccione Categoría...</option>
+                        <!-- Options injected by JS -->
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="insumo" class="form-label">Insumo (Materia Prima)</label>
+                    <input type="text" id="insumo" name="insumo" class="input-animated" required placeholder="Ej: Lomo Liso">
+                </div>
+
+                <div class="form-group">
+                    <label for="pesoInicial" class="form-label">Peso Inicial (Kg)</label>
+                    <input type="number" id="pesoInicial" name="pesoInicial" class="input-animated" required step="0.001" min="0" placeholder="0.000">
+                </div>
+
+                <div class="form-group">
+                    <label for="producto" class="form-label">Producto Elaborado</label>
+                    <input type="text" id="producto" name="producto" class="input-animated" required placeholder="Ej: Medallones 200g">
+                </div>
+
+                <div class="form-group">
+                    <label for="cantidad" class="form-label">Cantidad Obtenida (Unid.)</label>
+                    <input type="number" id="cantidad" name="cantidad" class="input-animated" required step="1" min="1" placeholder="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="pesoFinal" class="form-label">Peso Final Utilizable (Kg)</label>
+                    <input type="number" id="pesoFinal" name="pesoFinal" class="input-animated" required step="0.001" min="0" placeholder="0.000">
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="observaciones" class="form-label">Observaciones</label>
+                    <textarea id="observaciones" name="observaciones" class="input-animated" placeholder="Detalles adicionales..."></textarea>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <button type="submit" id="btnGuardar" class="btn-3d-primary" style="flex: 2;">💾 Guardar Registro</button>
+                <button type="button" id="btnLimpiar" class="btn-3d-secondary" style="flex: 1;">🔄 Limpiar</button>
+            </div>
+        </form>
+    </main>
+
+    <!-- Overlay Loader -->
+    <div id="loader" class="loader-overlay">
+        <div class="loader-3d"></div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
