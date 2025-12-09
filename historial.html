@@ -9,57 +9,62 @@
     <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
 </head>
 
-<body>
+<body class="dark-theme">
 
-    <header class="header">
-        <div class="logo-container">
-            <a href="index.html" class="btn-3d-secondary">← Volver</a>
-        </div>
-        <h1 class="header-title animate-fadeInUp">Historial de Producción</h1>
-        <button onclick="loadData()" class="btn-3d-info">🔄 Actualizar</button>
-    </header>
+    <main class="main-container">
 
-    <main class="container">
+        <div class="central-card animate-fadeInUp">
 
-        <div class="card-3d animate-fadeInUp" style="margin-bottom: 2rem;">
-            <h3 style="margin-bottom: 1rem;">Filtros y Exportación</h3>
-            <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
-                <div style="flex: 1; min-width: 200px;">
-                    <label class="form-label">Filtrar por Local</label>
-                    <select id="filtroLocal" class="input-animated">
-                        <option value="">Todos los locales</option>
+            <div class="card-header">
+                <div class="logo-area">
+                    <img src="assets/logo.svg" alt="Logo" class="logo-icon">
+                    <h1 class="app-title" style="font-size: 1.2rem;">Historial</h1>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 20px; display: flex; gap: 10px;">
+                <a href="index.html" class="link-secondary">← Volver</a>
+            </div>
+
+            <!-- Filtros compactos -->
+            <div class="form-section">
+                <label class="section-label">Filtrar por Local</label>
+                <div style="display: flex; gap: 10px;">
+                    <select id="filtroLocal" class="input-modern">
+                        <option value="">Todos</option>
                         <option value="Umo Grill">Umo Grill</option>
                         <option value="Brooklyn">Brooklyn</option>
                         <option value="Trento">Trento</option>
                         <option value="Puerto Gelato">Puerto Gelato</option>
                         <option value="Rustica">Rustica</option>
                     </select>
+                    <button id="btnFiltrar" class="btn-block-primary"
+                        style="flex: 1; padding: 10px; font-size: 1rem;">🔍</button>
                 </div>
-                <button id="btnFiltrar" class="btn-3d-info">🔍 Filtrar</button>
-                <button id="btnExportar" class="btn-3d-accent">📥 Exportar CSV</button>
             </div>
-        </div>
 
-        <div class="table-container animate-fadeInUp" style="animation-delay: 0.2s;">
-            <table class="table-animated">
-                <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Local</th>
-                        <th>Responsable</th>
-                        <th>Insumo</th>
-                        <th>Producto</th>
-                        <th>Merma %</th>
-                        <th>Rendimiento</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="historialBody">
-                    <!-- Data injected by JS -->
-                </tbody>
-            </table>
-        </div>
+            <div class="table-container" style="overflow-x: auto;">
+                <table class="table-animated" style="width: 100%; font-size: 0.9rem;">
+                    <thead>
+                        <tr style="text-align: left; border-bottom: 2px solid #eee;">
+                            <th style="padding: 10px;">Fecha</th>
+                            <th style="padding: 10px;">Local</th>
+                            <th style="padding: 10px;">Producto</th>
+                            <th style="padding: 10px;">Merma</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historialBody">
+                        <!-- Data injected by JS -->
+                    </tbody>
+                </table>
+            </div>
 
+            <button onclick="loadData()" class="link-secondary"
+                style="margin-top: 20px; width: 100%; border: none; background: none; cursor: pointer;">
+                🔄 Actualizar Lista
+            </button>
+
+        </div>
     </main>
 
     <!-- Overlay Loader -->
