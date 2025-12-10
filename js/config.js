@@ -1,9 +1,10 @@
 const CONFIG = {
-    // IMPORTANT: This ID needs to be updated with the actual Script ID after deployment
-    SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwq06Zk1pfyHi2rxbmhipUyrTc03By6xoodJ-39UmERdL7kcE3bWwhBBwxC8ihDETaK/exec',
-    // Spreadsheets URLs for data reading
-    SHEET_URL: 'https://docs.google.com/spreadsheets/d/placeholder_SHEET_ID_here/edit',
-    SHEET_CSV_URL: 'https://docs.google.com/spreadsheets/d/placeholder_SHEET_ID_here/gviz/tq?tqx=out:csv&sheet=Datos_Crudos',
+    // ⚠️ IMPORTANTE: REEMPLAZA ESTA URL CON LA QUE OBTENGAS AL DESPLEGAR EN APPS SCRIPT
+    // Debe terminar en '/exec'
+    SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbw9fVKtHo-RNzyuuZ3bCaag4XnRsYXBO1nT_Ckm7dpVSkaWF6RIVTw62hc_mKvo5j57/exec',
+
+    // Opcional: Para referencia rápida
+    SHEET_URL: 'TU_URL_DEL_GOOGLE_SHEET_AQUI',
 
     LOCALES: [
         { id: 'umo_grill', nombre: 'Umo Grill', emoji: '🔥', color: '#e94560' },

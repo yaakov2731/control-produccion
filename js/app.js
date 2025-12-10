@@ -100,6 +100,13 @@ function handleFormSubmit(e) {
 
     console.log("Sending data to:", CONFIG.SCRIPT_URL, data);
 
+    if (CONFIG.SCRIPT_URL.includes('TU_URL') || !CONFIG.SCRIPT_URL.includes('script.google.com')) {
+        alert("⚠️ ERROR DE CONFIGURACIÓN ⚠️\n\nNo has configurado la URL del Script.\nAbre js/config.js y pega la URL que obtuviste al desplegar en Google.");
+        btn.disabled = false;
+        loader.classList.remove('show');
+        return;
+    }
+
     fetch(CONFIG.SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',

@@ -1,37 +1,48 @@
 /**
  * CODIGO DE GOOGLE APPS SCRIPT
- * Copia y pega este contenido en tu editor de script de Google Sheet.
- * Asegúrate de publicar como aplicación web con acceso "Cualquiera" (incluyendo anónimos).
+ * Version: 2.0 - Dashboard & Professional Edition
+ * 
+ * INSTRUCCIONES DE DESPLIEGUE:
+ * 1. Pega este código en https://script.google.com/
+ * 2. Dale click al icono de "+" (Nueva implementación) -> Tipo: "Aplicación web".
+ * 3. Ejecutar como: "Yo".
+ * 4. Quién tiene acceso: "Cualquiera" (Anyone).
+ * 5. Dale "Implementar" y copia la URL resultante.
  */
 
 const SHEET_NAME = 'Datos_Crudos';
-const FORM_SHEET_NAME = 'Formulario_App'; // Nombre amigable para usuario final si lo prefiere
+const DASHBOARD_NAME = '📊 DASHBOARD_GERENCIAL';
 
 function doPost(e) {
-    // Manejo de CORS simplificado
+    const lock = LockService.getScriptLock();
+    lock.tryLock(10000); // Esperar hasta 10s para evitar condiciones de carrera
+
     try {
+        const doc = SpreadsheetApp.getActiveSpreadsheet();
+        const sheet = getOrCreateSheet(doc, SHEET_NAME);
+
+        // Si es la primera vez, configuramos headers
+        if (sheet.getLastRow() === 0) setupHeaders(sheet);
+
         const data = JSON.parse(e.postData.contents);
-        const sheet = getOrCreateSheet();
 
-        // Auto-formatting si es la primera fila
-        if (sheet.getLastRow() === 0) setupSheet();
+        // Validación básica
+        if (!data.local || !data.pesoInicial) {
+            return jsonResponse({ success: false, error: "Datos incompletos" });
+        }
 
-        // Parseo seguro de números
+        const timestamp = new Date(); // Timestamp servidor
         const pesoInicial = parseFloat(data.pesoInicial) || 0;
         const pesoFinal = parseFloat(data.pesoFinal) || 0;
         const cantidad = parseInt(data.cantidad) || 0;
 
+        // Cálculos Backend (doble verificación)
         const mermaKg = pesoInicial - pesoFinal;
-        const mermaPct = pesoInicial > 0 ? ((mermaKg / pesoInicial) * 100).toFixed(2) : 0;
-        const rendimientoPct = pesoInicial > 0 ? ((pesoFinal / pesoInicial) * 100).toFixed(2) : 0;
-        const pesoUnidad = cantidad > 0 ? (pesoFinal / cantidad).toFixed(3) : 0;
+        const mermaPct = pesoInicial > 0 ? (mermaKg / pesoInicial) : 0; // Guardamos en decimal (0.15 para 15%)
+        const rendimientoPct = pesoInicial > 0 ? (pesoFinal / pesoInicial) : 0;
+        const pesoUnidad = cantidad > 0 ? (pesoFinal / cantidad) : 0;
 
-        const timestamp = Utilities.formatDate(
-            new Date(),
-            'America/Argentina/Buenos_Aires',
-            'yyyy-MM-dd HH:mm:ss'
-        );
-
+        // Insertar Fila
         sheet.appendRow([
             data.local,
             timestamp,
@@ -43,156 +54,113 @@ function doPost(e) {
             cantidad,
             pesoFinal,
             mermaKg,
-            mermaPct, // %
-            rendimientoPct, // %
+            mermaPct,       // K
+            rendimientoPct, // L
             pesoUnidad,
             data.observaciones || ''
         ]);
 
-        // Aplicar estilo a la nueva fila (Banding manual o dejar que formato condicional lo haga)
-        // Para performance, es mejor aplicar formato por lote o tener pre-formato.
-        // Aquí aplicaremos bordes simples a la fila insertada.
-        const lastRow = sheet.getLastRow();
-        const lastCol = sheet.getLastColumn();
-        const range = sheet.getRange(lastRow, 1, 1, lastCol);
-        range.setBorder(true, true, true, true, true, true, '#dcdde1', SpreadsheetApp.BorderStyle.SOLID);
-        range.setVerticalAlignment('middle');
-
-        return jsonResponse({
-            success: true,
-            message: 'Registro guardado',
-        });
+        return jsonResponse({ success: true, message: 'Registro exitoso' });
 
     } catch (error) {
         return jsonResponse({ success: false, error: error.toString() });
+    } finally {
+        lock.releaseLock();
     }
 }
 
-function doGet(e) {
-    try {
-        const sheet = getOrCreateSheet();
-        if (sheet.getLastRow() <= 1) return jsonResponse({ success: true, data: [] });
-
-        const data = sheet.getDataRange().getValues();
-        const headers = data[0];
-        const rows = data.slice(1).map(row => {
-            const obj = {};
-            headers.forEach((h, i) => obj[h] = row[i]);
-            return obj;
-        });
-
-        return jsonResponse({ success: true, data: rows });
-    } catch (error) {
-        return jsonResponse({ success: false, error: error.toString() });
-    }
-}
-
-function getOrCreateSheet() {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    let sheet = ss.getSheetByName(SHEET_NAME);
-    if (!sheet) {
-        sheet = ss.insertSheet(SHEET_NAME);
-    }
-    return sheet;
-}
-
-/**
- * EJECUTAR ESTA FUNCIÓN MANUALMENTE UNA VEZ PARA DAR FORMATO PROFESIONAL
- */
-function setupProfessionalSheet() {
-    const sheet = getOrCreateSheet();
+function setupHeaders(sheet) {
     const headers = [
         '📍 Local', '🕒 Timestamp', '👤 Responsable', '📂 Categoría', '🥩 Insumo',
         '⚖️ Peso Inicial (Kg)', '📦 Producto', '🔢 Cantidad', '✅ Peso Final (Kg)',
         '📉 Merma (Kg)', '📉 Merma (%)', '📈 Rendimiento (%)', '⚖️ Peso/Unidad (Kg)', '📝 Observaciones'
     ];
 
-    // 1. Limpiar y Headers
-    if (sheet.getLastRow() === 0) {
-        sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-    } else {
-        // Update headers if exist
-        sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-    }
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
 
-    const lastCol = headers.length;
-    const headerRange = sheet.getRange(1, 1, 1, lastCol);
-
-    // 2. Estilo de Header (Corporativo Dark)
-    headerRange
-        .setBackground('#1e1e2d') // Dark Blue/Grey
-        .setFontColor('#ffffff')
-        .setFontWeight('bold')
-        .setFontFamily('Outfit') // Fallback to sans-serif if not valid
-        .setHorizontalAlignment('center')
-        .setVerticalAlignment('middle')
-        .setWrap(true);
-
+    // Formato Headers
+    const headerRange = sheet.getRange(1, 1, 1, headers.length);
+    headerRange.setBackground('#1e1e2d').setFontColor('#ffffff').setFontWeight('bold').setHorizontalAlignment('center');
     sheet.setFrozenRows(1);
-    sheet.setRowHeight(1, 40);
 
-    // 3. Formato de Columnas (Anchos estimados)
-    sheet.setColumnWidth(1, 120); // Local
-    sheet.setColumnWidth(2, 140); // Time
-    sheet.setColumnWidth(4, 120); // Cat
-    sheet.setColumnWidth(14, 200); // Obs
-
-    // 4. Formato Condicional (Banding)
-    // Nota: GAS no tiene método directo simple para "Alternating Colors" como UI, 
-    // pero podemos aplicar banding range.
-    const dataRange = sheet.getRange(2, 1, 999, lastCol);
-    dataRange.applyRowBanding(SpreadsheetApp.BandingTheme.LIGHT_GREY);
-
-    // 5. Formato de Número para columnas específicas
-    // F, G, J, M son columnas de Peso (0.000) -> indices 6, 9, 10, 13 (1-based)
-    // Indices: 6 (Peso Ini), 9 (Peso Fin), 10 (Merma Kg), 13 (Peso Uni)
-    const numberFormats = [
-        { col: 6, fmt: '0.000 "kg"' },
-        { col: 9, fmt: '0.000 "kg"' },
-        { col: 10, fmt: '0.000 "kg"' },
-        { col: 13, fmt: '0.000 "kPa"' } // Error typo fix -> kg
-    ];
-
-    sheet.getRange("F2:F").setNumberFormat('0.000 "kg"');
-    sheet.getRange("I2:I").setNumberFormat('0.000 "kg"');
-    sheet.getRange("J2:J").setNumberFormat('0.000 "kg"');
-    sheet.getRange("M2:M").setNumberFormat('0.000 "kg"');
-
-    // Porcentajes
-    sheet.getRange("K2:K").setNumberFormat('0.00"%"');  // Merma %
-    sheet.getRange("L2:L").setNumberFormat('0.00"%"');  // Rendimiento %
-
-    // Reglas de color condicional para Merma % (K)
-    // Rojo si > 15, Verde si < 10
-    const ruleHigh = SpreadsheetApp.newConditionalFormatRule()
-        .whenNumberGreaterThan(15)
-        .setBackground('#ff7675')
-        .setFontColor('white')
-        .setRanges([sheet.getRange("K2:K")])
-        .build();
-
-    const ruleLow = SpreadsheetApp.newConditionalFormatRule()
-        .whenNumberLessThan(10)
-        .setBackground('#00b894')
-        .setFontColor('white')
-        .setRanges([sheet.getRange("K2:K")])
-        .build();
-
-    const rules = sheet.getConditionalFormatRules();
-    rules.push(ruleHigh);
-    rules.push(ruleLow);
-    sheet.setConditionalFormatRules(rules);
-
-    Logger.log('Hoja configurada profesionalmente');
+    // Formato Columnas
+    sheet.getRange("K:L").setNumberFormat("0.0%"); // Porcentajes
+    sheet.getRange("F:F").setNumberFormat("0.000"); // Pesos
+    sheet.getRange("I:J").setNumberFormat("0.000"); // Pesos
+    sheet.getRange("M:M").setNumberFormat("0.000"); // Pesos
 }
 
-// Alias para compatibilidad anterior, llama a la nueva
-function setupSheet() {
-    setupProfessionalSheet();
+/**
+ * FUNCIÓN PRINCIPAL PARA EL USUARIO
+ * Ejecutar esto restaurará o creará el Dashboard
+ */
+function CREAR_DASHBOARD_PROFESIONAL() {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let dash = ss.getSheetByName(DASHBOARD_NAME);
+
+    // Si existe, lo borramos para regenerar limpio (o podrías limpiarlo)
+    if (dash) {
+        ss.deleteSheet(dash);
+    }
+
+    dash = ss.insertSheet(DASHBOARD_NAME, 0); // Crear al principio
+    dash.setTabColor("#6c5ce7");
+
+    // Ocultar lineas de cuadricula
+    dash.setHiddenGridlines(true);
+
+    // 1. TITULO
+    const titleCell = dash.getRange("B2");
+    titleCell.setValue("🚀 CONTROL DE PRODUCCIÓN - DASHBOARD GERENCIAL");
+    titleCell.setFontSize(18).setFontWeight("bold").setFontColor("#2d3436");
+
+    // 2. KPIS CARDS (Fila 4)
+    createKpiCard(dash, 4, 2, "PRODUCCIÓN TOTAL", "=SUM(Datos_Crudos!F:F)", "#0984e3", "0.0 kg");
+    createKpiCard(dash, 4, 5, "MERMA GLOBAL", "=AVERAGE(Datos_Crudos!K:K)", "#d63031", "0.0%");
+    createKpiCard(dash, 4, 8, "RENDIMIENTO PROM.", "=AVERAGE(Datos_Crudos!L:L)", "#00b894", "0.0%");
+
+    // 3. TABLA RESUMEN POR LOCAL (Fila 8)
+    // Usamos QUERY para dinamismo. Nota: Asegurate que tu sheet se llame Datos_Crudos
+    const queryCell = dash.getRange("B8");
+    queryCell.setValue("=QUERY(Datos_Crudos!A:M; \"SELECT A, COUNT(A), SUM(F), AVG(K), AVG(L) WHERE A IS NOT NULL GROUP BY A LABEL A 'Local', COUNT(A) 'Registros', SUM(F) 'Input Total (kg)', AVG(K) 'Merma %', AVG(L) 'Rendimiento %' FORMAT SUM(F) '0.0', AVG(K) '0.0%', AVG(L) '0.0%'\"; 1)");
+
+    // Estilar la tabla resultante (estimado B8:F13)
+    dash.getRange("B8:F8").setBackground("#636e72").setFontColor("white").setFontWeight("bold");
+    dash.getRange("B8:F15").setHorizontalAlignment("center").setBorder(true, true, true, true, true, true, "#b2bec3", SpreadsheetApp.BorderStyle.SOLID);
+
+    // 4. GENERAR GRÁFICO (Chart)
+    const chart = dash.newChart()
+        .setChartType(Charts.ChartType.COLUMN)
+        .addRange(dash.getRange("B8:B13")) // Locales
+        .addRange(dash.getRange("F8:F13")) // Rendimiento
+        .setPosition(8, 8, 0, 0)
+        .setOption('title', 'Rendimiento Promedio por Local')
+        .setOption('colors', ['#00b894'])
+        .setOption('legend', { position: 'none' })
+        .build();
+
+    dash.insertChart(chart);
+
+    SpreadsheetApp.getUi().alert("✅ Dashboard Generado con Éxito. Revisa la pestaña '" + DASHBOARD_NAME + "'.");
+}
+
+function createKpiCard(sheet, row, col, title, formula, color, format) {
+    // Header
+    const rHeader = sheet.getRange(row, col, 1, 2);
+    rHeader.merge().setValue(title).setBackground(color).setFontColor("white").setFontWeight("bold").setHorizontalAlignment("center");
+
+    // Body
+    const rBody = sheet.getRange(row + 1, col, 2, 2);
+    rBody.merge().setFormula(formula).setNumberFormat(format).setFontSize(20).setHorizontalAlignment("center").setVerticalAlignment("middle");
+    rBody.setBorder(true, true, true, true, true, true, color, SpreadsheetApp.BorderStyle.SOLID);
+}
+
+function getOrCreateSheet(ss, name) {
+    let sheet = ss.getSheetByName(name);
+    if (!sheet) sheet = ss.insertSheet(name);
+    return sheet;
 }
 
 function jsonResponse(data) {
-    return ContentService
-        .createTextOutput(JSON.stringify(data))
-        .setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
 }
